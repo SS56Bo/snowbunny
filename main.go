@@ -14,8 +14,18 @@ type Server struct {
 }
 
 func CreateNewServer(cfg Config) *Server {
+	if (len(cfg.ListenAddress)) == 0 {
+		cfg.ListenAddress = ":7777"
+	}
 	return &Server{
 		Config: cfg,
+	}
+}
+
+func (s *Server) StartServer() error {
+	listen, err := net.Listen("tcp", s.ListenAddress)
+	if err != nil {
+		return err
 	}
 }
 
