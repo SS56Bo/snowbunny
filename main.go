@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 )
 
@@ -11,13 +12,9 @@ type Config struct {
 }
 type Server struct {
 	Config
-	listen net.Listener
-}
-
-func errorLogger(err error) {
-	if err != nil {
-		log.Printf("Error: %v", err)
-	}
+	peer           map[*Peer]bool
+	listen         net.Listener
+	addPeerChannel chan *Peer
 }
 
 func CreateNewServer(cfg Config) *Server {
@@ -31,18 +28,35 @@ func CreateNewServer(cfg Config) *Server {
 
 func (s *Server) StartServer() error {
 	listen, err := net.Listen("tcp", s.ListenAddress)
-	errorLogger(err)
-
+	if err != nil {
+		log.Printf("Error: %v", err)
+	}
 	s.listen = listen
 	s.acceptLoop()
 	return nil
 }
 
-func (s *Server) acceptLoop() {
-	conn, err := s.listen.Accept()
+func (s *Server) loop() {
+	for {
+		select {
+		case peer := <-s.addPeerChannel:
+			s.peer[peer] = true
+		default:
+			fmt.Printf("Default")
+		}
+	}
+}
 
-	s.handleConn(conn)
-	errorLogger(err)
+func (s *Server) acceptLoop() {
+	for {
+		conn, err := s.listen.Accept()
+		if err != nil {
+			slog.Error("Accept Error", "Err", err)
+			continue
+		}
+
+		go s.handleConn(conn)
+	}
 }
 
 func (s *Server) handleConn(conn net.Conn) {
