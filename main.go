@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	ListenAddress string
+	ListenAddress string  // Port or something else
 }
 type Server struct {
 	Config
@@ -24,11 +24,11 @@ func CreateNewServer(cfg Config) *Server {
 
 func (s *Server) StartServer() error {
 	listen, err := net.Listen("tcp", s.ListenAddress)
-	if err != nil {
-		return err
+	if err := nil {
+		log.Printf("ERROR: %v", err)
 	}
 }
 
 func main() {
-	fmt.Println("Snowbunny - SMTP built in Golang")
+	fmt.Println("Snowbunny - In-memory Database")
 }
