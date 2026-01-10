@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	ListenAddress string // Port or something else
+	ListenAddress string
 }
+
 type Server struct {
 	Config
 	peer           map[*Peer]bool
@@ -22,7 +23,9 @@ func CreateNewServer(cfg Config) *Server {
 		cfg.ListenAddress = ":7777"
 	}
 	return &Server{
-		Config: cfg,
+		Config:         cfg,
+		peer:           make(map[*Peer]bool),
+		addPeerChannel: make(chan *Peer),
 	}
 }
 
@@ -32,6 +35,8 @@ func (s *Server) StartServer() error {
 		log.Printf("Error: %v", err)
 	}
 	s.listen = listen
+
+	s.loop()
 	s.acceptLoop()
 	return nil
 }
@@ -60,9 +65,14 @@ func (s *Server) acceptLoop() {
 }
 
 func (s *Server) handleConn(conn net.Conn) {
+	peer := NewPeer(conn)
+	s.addPeerChannel <- peer
 
+	go peer.readLoop()
 }
 
 func main() {
-	fmt.Println("Snowbunny - In-memory Database")
+	server := CreateNewServer(Config{})
+
+	log.Fatal(server.StartServer())
 }
