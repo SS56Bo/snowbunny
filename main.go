@@ -68,7 +68,7 @@ func (s *Server) handleConn(conn net.Conn) {
 	peer := NewPeer(conn)
 	s.addPeerChannel <- peer
 
-	go peer.readLoop()
+	go peer.readLoop() // need to look into this later
 }
 
 func main() {
